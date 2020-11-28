@@ -1,8 +1,8 @@
-var mymap = L.map('mapid').setView([-38.95,-68.06667], 13);
+var map = L.map('mainmap').setView([-38.95,-68.06667], 13);
 
 L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>', 
-}).addTo(mymap);
+}).addTo(map);
 
 $.ajax({
     dataType: "json",
