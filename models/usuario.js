@@ -1,6 +1,8 @@
 var mongoose = require('mongoose');
+const uniqueValidator = require('mongoose-unique-validator');
 var Reserva = require('./reserva');
 const bcrypt = require('bcrypt');
+const { model } = require('./reserva');
 
 const saltRounds = 10;
 
@@ -22,6 +24,7 @@ var usuarioSchema = new Schema({
         trim: true,
         required: [true, "El mail es obligatorio"],
         lowercase: true,
+        unique:true,
         validate: [validateEmail, "Por favor ingrese un email válido"]
         match: [/\S+@\S+\.\S+/]
     },
@@ -36,6 +39,8 @@ var usuarioSchema = new Schema({
         default: false
     },
 });
+
+usuarioSchema.plugin(uniqueValidator, { message: 'El (PATH) ya existe con otro usuario.'});
 
 usuarioSchema.pre('save', function(next){
     if (this.isModified('password')){
@@ -53,3 +58,5 @@ usuarioSchema.method.reservar = function(biciId, desde, haste, cb){
     console.log(reserva);
     reserva.save(cb);  
 };
+
+module.exports = mongoose.model('Usuario', usuarioSchema);

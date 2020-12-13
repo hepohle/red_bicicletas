@@ -1,7 +1,9 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+'use strict'
 
-var bicicletaSchema = new Schema({
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+const bicicletaSchema = new Schema({
    code: Number,
    color: String,
    modelo: String,
