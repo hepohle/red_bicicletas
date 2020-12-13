@@ -1,9 +1,12 @@
-const mongoose = require('mongoose');
+var mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
-const Reserva = require('./reserva');
+var Reserva = require('./reserva');
 const bcrypt = require('bcrypt');
-
+const crypto = require('crypto');
 const saltRounds = 10;
+
+const Tokens = require('../models/token');
+const mailer = require('../mailer/mailer');
 
 var Schema = mongoose.Schema;
 
@@ -24,7 +27,7 @@ var usuarioSchema = new Schema({
         required: [true, "El mail es obligatorio"],
         lowercase: true,
         unique:true,
-        validate: [validateEmail, "Por favor ingrese un email válido"]
+        validate: [validateEmail, "Por favor ingrese un email válido"],
         match: [/\S+@\S+\.\S+/]
     },
     password: {
@@ -48,7 +51,7 @@ usuarioSchema.pre('save', function(next){
     next();
 });
 
-ususarioSchema.method.validPassword = function(password){
+usuarioSchema.method.validPassword = function(password){
     return bcrypt.compareSync(password, this.password);
 }
 
@@ -57,5 +60,26 @@ usuarioSchema.method.reservar = function(biciId, desde, haste, cb){
     console.log(reserva);
     reserva.save(cb);  
 };
+
+usuarioSchema.methods.enviar_email_bienvenida = function(cb){
+    const token = new Tokens({_userId: this.id, token: crypto.randomBytes(16).toString('hex')});
+    const email_destination = this.email;
+    token.save(function(err){
+        if (err) { return console.log(err.message); }
+
+        const mailOptions = {
+            from: 'no-reply@redbicicletas.com',
+            to: email_destination,
+            subject: 'Verificación de cuenta',
+            text: 'Hola,\n\n' + 'Por favor, para verificar su cuenta haga click en este link: \n' + 'http://localhost:5000' + '\/token/confirmation\/' + token.token + '.\n'
+        };
+
+        mailer.sendMail(mailOptions, function(err){
+            if(err){return console.log(err.message); }
+
+            console.log('Se ha enviado un email de bienvenida a ' + email_destination + '.');
+        });
+    });
+}
 
 module.exports = mongoose.model('Usuario', usuarioSchema);
