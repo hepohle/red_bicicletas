@@ -1,8 +1,7 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
-var Reserva = require('./reserva');
+const Reserva = require('./reserva');
 const bcrypt = require('bcrypt');
-const { model } = require('./reserva');
 
 const saltRounds = 10;
 
