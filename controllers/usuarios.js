@@ -2,7 +2,7 @@ var Usuario = require('../models/usuario');
 
 module.exports = {
     list: function (req, res, next) {
-        Usuario.find({}, (err, ususarios) => {
+        Usuario.find({}, (err, usuarios) => {
             res.render('usuarios/index', {usuarios: usuarios});
         });
     },
