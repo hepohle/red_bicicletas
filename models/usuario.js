@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const saltRounds = 10;
 
-const Tokens = require('../models/token');
+const Token = require('../models/token');
 const mailer = require('../mailer/mailer');
 
 var Schema = mongoose.Schema;
@@ -62,7 +62,7 @@ usuarioSchema.method.reservar = function(biciId, desde, haste, cb){
 };
 
 usuarioSchema.methods.enviar_email_bienvenida = function(cb){
-    const token = new Tokens({_userId: this.id, token: crypto.randomBytes(16).toString('hex')});
+    const token = new Token({_userId: this.id, token: crypto.randomBytes(16).toString('hex')});
     const email_destination = this.email;
     token.save(function(err){
         if (err) { return console.log(err.message); }
@@ -79,6 +79,27 @@ usuarioSchema.methods.enviar_email_bienvenida = function(cb){
 
             console.log('Se ha enviado un email de bienvenida a ' + email_destination + '.');
         });
+    });
+}
+
+usuarioSchema.methods.resetPassword = function(cb){
+    const token = new Token({_userId: this.id, token: crypto.randomBytes(16).toString('hex')});
+    const email_destination = this.email;
+    token.save(function(err){
+        if(err){return cb(err);}
+
+        const mailOptions = {
+            from: 'no-reply@redbicicletas.com',
+            to: email_destination,
+            subject: 'Reseteo de Password de cuenta',
+            text: 'Hola, \n\n' + 'Por favor, para resetear el password de su cuenta haga click en este link: \n' + 'http://localhost:5000' + '\/resetPassword\/' + token.token + '.\n'
+        };
+        mailer.sendMail(mailOptions, function(err){
+            if(err){return cb(err); }
+
+            console.log('Se envio un email para resetear el password a: ' + email_destination + '.');
+        });
+        cb(null);
     });
 }
 
