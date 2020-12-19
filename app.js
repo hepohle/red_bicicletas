@@ -147,7 +147,11 @@ app.use('/api/bicicletas', validarUsuario, bicicletasAPIRouter);
 app.use('api/usuarios', usuariosAPIRouter);
 
 app.use('/privacy-policy', function(req, res){
-  res.sendFile('privacy-policy.html', {root: __dirname});
+  res.sendFile('public/privacy-policy.html');
+});
+
+app.use('/google8220050a675401a6', function(req, res){
+  res.sendFile('public/google8220050a675401a6.html');
 });
 
 // catch 404 and forward to error handler
