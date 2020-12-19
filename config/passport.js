@@ -12,7 +12,8 @@ passport.use(new LocalStrategy(
             //If there is not user with taht email
             if(!usuario) return done(null, false, {message: 'Email no existente o incorrecto'});
             //Is password is not valid
-            if (!usuario.validPassword(password)) return done(null, false, {message: 'Password no existente o incorrecto'});
+            if (usuario.password != password) { return done(null, false, {message: 'Password no existente o incorrecto'}); }
+            //if (!usuario.validPassword(password)) return done(null, false, {message: 'Password no existente o incorrecto'});
 
             //Everthing is OK. Execute the callaback
             return done(null, usuario)
@@ -22,12 +23,12 @@ passport.use(new LocalStrategy(
 
 //cb(callback)
 passport.serializeUser(function(user,cb){
-    cb(null, user.id);
+    cb (null, user.id);
 });
 
 passport.deserializeUser((id, cb)=>{
     Usuario.findById(id, function(err, usuario){
-        cb(err, usuario)
+        cb (err, usuario)
     });
 });
 

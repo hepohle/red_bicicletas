@@ -1,3 +1,5 @@
+require('newrelic');
+require('dotenv').config();
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -5,6 +7,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const passport = require('./config/passport');
 const session = require('express-session');
+const MongoDBStore = require('connect-mongodb-session')(session);
 const jwt = require('jsonwebtoken')
 
 var indexRouter = require('./routes/index');
@@ -14,10 +17,25 @@ var bicicletasRouter = require('./routes/bicicletas');
 var bicicletasAPIRouter = require('./routes/api/bicicletas');
 var usuariosAPIRouter = require('./routes/api/usuarios');
 var authAPIRouter = require('./routes/api/auth');
+
 const Usuario = require('./models/usuario');
 const Token = require('./models/token');
+const Bicicletas = require('./models/bicicleta');
+//const store = new session.MemoryStore;
 
-const store = new session.MemoryStore;
+let store;
+if (process.env.NODE_ENV === 'development') {
+    store = new session.MemoryStore;
+} else {
+    store = new MongoDBStore({
+        uri: process.env.MONGO_URI,
+        collection: 'sessions'
+    });
+    store.on('error', function(error) {
+        assert.ifError(error);
+        assert.ok(false);
+    })
+}
 
 var app = express();
 
@@ -28,14 +46,16 @@ app.use(session({
   store: store,
   saveUninitialized: true,
   resave: true,
-  secret: '...'
+  secret: 'red_bicis...123123'
 }));
 
 var mongoose = require('mongoose');
 const usuario = require('./models/usuario');
 
-var mongoDB = 'mongodb://localhost/redbicicletas';
-mongoose.connect(mongoDB, { useNewUrlParser: true });
+//var mongoDB = 'mongodb://localhost/redbicicletas';
+//var mongoDB = 'mongodb+srv://admin:IC4ALgDxmXJVvBtc@red-bicicletas.sib3s.mongodb.net/<dbname>?retryWrites=true&w=majority';
+var mongoDB = process.env.MONGO_URI;
+mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error: '));
@@ -59,7 +79,7 @@ app.get('/login', function(req, res) {
 app.post('/login', function(req, res, next){
   passport.authenticate('local', function(err, usuario, info){
     if(err) return next(err);
-    if (usuario) return res.render('session/login', {info});
+    if (!usuario) return res.render('session/login', {info});
     req.login(usuario, function(err){
       if (err) return next (err);
       return res.render('/');
@@ -123,7 +143,7 @@ app.use('/bicicletas', loggedIn, bicicletasRouter);
 
 app.use('api/auth', authAPIRouter);
 
-app.use('/api/bicicletas', bicicletasAPIRouter);
+app.use('/api/bicicletas', validarUsuario, bicicletasAPIRouter);
 app.use('api/usuarios', usuariosAPIRouter);
 
 // catch 404 and forward to error handler
@@ -151,10 +171,10 @@ function loggedIn(req, res, next){
   }
 };
 
-function validarUsuario(req, res, next){
+function validarUsuario(req, res, next) {
   jwt.verify(req.headers['x-access-token'], req.app.get('secretKey'), function(err, decoded){
     if(err){
-      res.json({status:"error", messagge: err.message, data:null});
+      res.json({status:'error', messagge: err.message, data: null});
     }else{
       
       req.body.userId = decoded.id;
@@ -164,6 +184,6 @@ function validarUsuario(req, res, next){
       next();
     }
   });
-}
+};
 
 module.exports = app;

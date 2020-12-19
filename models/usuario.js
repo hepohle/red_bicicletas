@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const saltRounds = 10;
 
-const Token = require('../models/token');
+const Token = require('./token');
 const mailer = require('../mailer/mailer');
 
 var Schema = mongoose.Schema;
@@ -103,4 +103,4 @@ usuarioSchema.methods.resetPassword = function(cb){
     });
 }
 
-module.exports = mongoose.model('Usuario', usuarioSchema);
+module.exports = mongoose.model('Usuarios', usuarioSchema);
