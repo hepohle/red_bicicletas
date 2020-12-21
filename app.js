@@ -34,13 +34,11 @@ if (process.env.NODE_ENV === 'development') {
     store.on('error', function(error) {
         assert.ifError(error);
         assert.ok(false);
-    })
+    });
 }
 
-var app = express();
-
+let app = express();
 app.set('secretKey', 'jwt_pwd_!!223344');
-
 app.use(session({
   cookie: { maxAge: 240 * 60 * 60 * 1000},
   store: store,
@@ -153,6 +151,15 @@ app.use('/privacy-policy', function(req, res){
 app.use('/google8220050a675401a6', function(req, res){
   res.sendFile('public/google8220050a675401a6.html');
 });
+
+app.get('/auth/google',
+  passport.authenticate('google', { scope: 'https://www.google.com/m8/feeds' }));
+
+app.get('/auth/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  function(req, res) {
+    res.redirect('/');
+  });
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
